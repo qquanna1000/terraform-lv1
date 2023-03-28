@@ -8,7 +8,7 @@ resource "aws_instance" "bastion" {
     instance_type = var.ec2_instance["instance_type"]
     subnet_id = aws_subnet.public[0].id
     vpc_security_group_ids =[aws_security_group.sgbastion.id]
-    key_name = "quanna-ec2"
+    key_name = "${var.prefix}ec2"
     tags = {
          Name = "quannabastion"
     }
@@ -17,7 +17,7 @@ resource "aws_instance" "web" {
     ami = var.ec2_instance["ami"] //console那邊會有固定且公開的AMI(Amazon linux)，一開始使用Console創立時，也都是使用那public的
     instance_type = var.ec2_instance["instance_type"]
     subnet_id = aws_subnet.private[0].id
-    key_name = "quanna-ec2"
+    key_name = "${var.prefix}ec2"
     iam_instance_profile = "ec2-acces-s3"
     vpc_security_group_ids =[aws_security_group.sgweb.id]
     //每次創建EC2會執行
@@ -87,11 +87,18 @@ resource "aws_instance" "web" {
     }' > /opt/aws/amazon-cloudwatch-agent/bin/config.json
     sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -c file:/opt/aws/amazon-cloudwatch-agent/bin/config.json -s
     #sudo systemctl restart amazon-cloudwatch-agent
+    sudo yum install -y amazon-efs-utils
+    sudo /usr/local/bin/pip3 install botocore //使用 Amazon CloudWatch 監控檔案系統的掛載狀態
+    sudo pip3 install botocore --upgrade
+    sudo mkdir -p /mnt/efs
+    sudo mount -t efs -o tls ${aws_efs_file_system.efs.id} :/ /mnt/efs //將資料掛載到/mnt/efs底下的根目錄
+    touch /mnt/efs/test.txt
+   # sudo mount -t efs -o tls ${aws_efs_file_system.efs.id} /mnt/efs //傳輸中資料的加密
 
     EOF
     
     tags = {
-         Name = "quanna-web"
+         Name = "${var.prefix}web"
     }
     
     depends_on = [aws_route_table.private_rt]
@@ -104,15 +111,15 @@ resource "aws_db_instance" "RDS" {
   engine               = "mysql"
   engine_version       = "5.7"
   instance_class       = "db.t3.micro"
-  username             = "quanna"
-  password             = "Yichien0719"
+  username             = var.db_username
+  password             = var.db_password
   parameter_group_name = "default.mysql5.7"
   skip_final_snapshot  = true
   vpc_security_group_ids =[aws_security_group.sgdb.id]
   db_subnet_group_name = aws_db_subnet_group.rds.name
-  tags = {
-       Name = "quanna-rds"
-  }  
+  tags = merge(var.tags,{
+       Name = "${var.prefix}rds"
+  }  )
 }
 
 resource "aws_db_subnet_group" "rds" {
@@ -123,6 +130,6 @@ resource "aws_db_subnet_group" "rds" {
     aws_subnet.private[3].id
   ]
   tags = {
-       Name = "quanna-subnetgroup"
+       Name = "${var.prefix}subnetgroup"
   }  
 }

@@ -1,7 +1,7 @@
 
 //alb
 resource "aws_lb" "alb" {
-  name               = "1000-alb"
+  name               = "${var.prefix}alb"
   internal           = false 
   load_balancer_type = "application"
   security_groups  = [aws_security_group.sgalb.id]

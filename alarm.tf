@@ -1,6 +1,6 @@
 //alarm警告
 resource "aws_cloudwatch_metric_alarm" "ec2_memory_used_alarm" {
-  alarm_name          = "Quanna-alarm"
+  alarm_name          = "${var.prefix}alarm"
   comparison_operator = "GreaterThanThreshold" //大於
   evaluation_periods  = 1 //檢查幾次
   metric_name         = "CPUUtilization"
@@ -17,7 +17,7 @@ resource "aws_cloudwatch_metric_alarm" "ec2_memory_used_alarm" {
 
 //sns設定
 resource "aws_sns_topic" "sns" {
-  name = "quanna-sns"
+  name = "${var.prefix}sns"
 }
 resource "aws_sns_topic_subscription" "email_subscription" {
   topic_arn = aws_sns_topic.sns.arn

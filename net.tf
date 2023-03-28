@@ -12,9 +12,7 @@ resource "aws_subnet" "public" {
   cidr_block = "10.0.${count.index + 1}.0/24"
   availability_zone = var.availability_zones[count.index % 2]
   map_public_ip_on_launch = true
-  tags = {
-    Name = "quanna-public${count.index + 1}"
-  }
+  tags = merge(var.tags,{Name = "${var.prefix}public${count.index + 1}"})
 }
 
 resource "aws_subnet" "private" {
@@ -22,9 +20,7 @@ resource "aws_subnet" "private" {
   vpc_id = aws_vpc.main.id
   cidr_block = "10.0.${count.index + 3}.0/24"
   availability_zone = var.availability_zones[count.index % 2]
-  tags = {
-    Name = "quanna-private${count.index + 1}"
-  }
+  tags = merge(var.tags,{Name = "${var.prefix}private${count.index + 1}"})
 }
 
 resource "aws_internet_gateway" "public_igw" {
@@ -32,9 +28,7 @@ resource "aws_internet_gateway" "public_igw" {
 }
 resource "aws_eip" "forprivate" { //彈性ip
   vpc = true
-  tags = {
-    Name = "forprivate"
-  }
+  tags = merge(var.tags,{Name = "forprivate"})
 }
 resource "aws_nat_gateway" "nat" {
   allocation_id = aws_eip.forprivate.id
@@ -47,9 +41,9 @@ resource "aws_route_table" "public_rt" {
     cidr_block = "0.0.0.0/0"
     gateway_id = aws_internet_gateway.public_igw.id
   }
-  tags = {
-    Name = "quanna-public"
-  }
+  tags = merge(var.tags,{
+    Name = "${var.prefix}public"
+  })
 }
 resource "aws_route_table" "private_rt" {
   vpc_id = aws_vpc.main.id
@@ -57,9 +51,9 @@ resource "aws_route_table" "private_rt" {
     cidr_block = "0.0.0.0/0"
     gateway_id = aws_nat_gateway.nat.id
   }
-  tags = {
-    Name = "quanna-private"
-  }
+  tags = merge(var.tags,{
+    Name = "${var.prefix}private"
+  })
 }
 
 resource "aws_route_table_association" "public" {
