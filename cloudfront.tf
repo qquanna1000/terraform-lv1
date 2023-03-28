@@ -1,3 +1,4 @@
+
 resource "aws_cloudfront_distribution" "cloudfront" {
   enabled = true
   origin {

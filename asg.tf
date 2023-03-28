@@ -1,3 +1,4 @@
+
 //ami
 resource "aws_ami_from_instance" "ami" {
   name  = "quanna-ec2"
