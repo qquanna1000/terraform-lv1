@@ -4,9 +4,9 @@ data "template_file" "config" {
 
 //instance
 resource "aws_instance" "bastion" {
-    ami = "ami-005f9685cb30f234b" //console那邊會有固定且公開的AMI(Amazon linux)，一開始使用Console創立時，也都是使用那public的
-    instance_type = "t2.micro"
-    subnet_id = aws_subnet.public1.id
+    ami = var.ec2_instance["ami"] //console那邊會有固定且公開的AMI(Amazon linux)，一開始使用Console創立時，也都是使用那public的
+    instance_type = var.ec2_instance["instance_type"]
+    subnet_id = aws_subnet.public[0].id
     vpc_security_group_ids =[aws_security_group.sgbastion.id]
     key_name = "quanna-ec2"
     tags = {
@@ -14,9 +14,9 @@ resource "aws_instance" "bastion" {
     }
 }
 resource "aws_instance" "web" {
-    ami = "ami-005f9685cb30f234b" //console那邊會有固定且公開的AMI(Amazon linux)，一開始使用Console創立時，也都是使用那public的
-    instance_type = "t2.micro"
-    subnet_id = aws_subnet.private1.id
+    ami = var.ec2_instance["ami"] //console那邊會有固定且公開的AMI(Amazon linux)，一開始使用Console創立時，也都是使用那public的
+    instance_type = var.ec2_instance["instance_type"]
+    subnet_id = aws_subnet.private[0].id
     key_name = "quanna-ec2"
     iam_instance_profile = "ec2-acces-s3"
     vpc_security_group_ids =[aws_security_group.sgweb.id]
@@ -94,7 +94,7 @@ resource "aws_instance" "web" {
          Name = "quanna-web"
     }
     
-    depends_on = [aws_route_table.privatec_rt]
+    depends_on = [aws_route_table.private_rt]
 
 
 }
@@ -119,8 +119,8 @@ resource "aws_db_subnet_group" "rds" {
   name        = "quanna"
   description = "RDS subnet group"
   subnet_ids  = [
-    aws_subnet.private3.id,
-    aws_subnet.private4.id
+    aws_subnet.private[2].id,
+    aws_subnet.private[3].id
   ]
   tags = {
        Name = "quanna-subnetgroup"

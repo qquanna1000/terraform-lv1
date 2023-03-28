@@ -1,10 +1,6 @@
 provider "aws"{
-    region="us-east-1"
+    region=var.region
 }
 
-
-//cloudfront監控alb
-
-//不懂在幹嘛
 
 

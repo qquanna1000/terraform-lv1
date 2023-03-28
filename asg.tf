@@ -29,7 +29,7 @@ resource "aws_autoscaling_group" "asg" {
   health_check_type  = "ELB"
  
 //指定範本ec2  
-  vpc_zone_identifier  = [aws_subnet.private1.id, aws_subnet.private2.id]
+  vpc_zone_identifier  = [aws_subnet.private[0].id, aws_subnet.private[1].id]
   
   launch_template {
     id = aws_launch_template.template.id
