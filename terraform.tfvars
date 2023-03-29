@@ -1,2 +1,2 @@
 db_username = "quanna"
-db_password = "0"
+db_password = "00000000"

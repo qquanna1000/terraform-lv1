@@ -23,20 +23,19 @@ resource "aws_instance" "web" {
     //每次創建EC2會執行
     user_data = <<-EOF
     #!/bin/bash
-    #exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1 
+    exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1 
     echo "Hello from user-data!"
     sudo yum update -y
     sudo yum install -y httpd.x86_64
     sudo yum install -y mysql
-    sudo yum install -y php
+    sudo yum install -y amazon-linux-extras
+    sudo amazon-linux-extras install -y php8.0
+    #sudo amazon-linux-extras enable php8.0 //啟動php8.0
+    #sudo yum install php-cli php-common php-mbstring php-gd php-mysqlnd php-pdo php-xml php-fpm -y
     echo "Your IP address is: <?php echo \$_SERVER['REMOTE_ADDR']; ?>" > /var/www/html/index.php
     sudo systemctl start httpd.service
     sudo systemctl enable httpd.service
-    #sudo yum install -y amazon-cloudwatch-agent
-    wget  'https://s3.amazonaws.com/amazoncloudwatch-agent/amazon_linux/amd64/latest/amazon-cloudwatch-agent.rpm'
-    sudo rpm -U ./amazon-cloudwatch-agent.rpm
-    #sudo systemctl start amazon-cloudwatch-agent
-    #sudo systemctl enable amazon-cloudwatch-agent
+    sudo yum install -y amazon-cloudwatch-agent
     echo '{
       "agent": {
         "metrics_collection_interval": 60,
@@ -86,14 +85,12 @@ resource "aws_instance" "web" {
         }
     }' > /opt/aws/amazon-cloudwatch-agent/bin/config.json
     sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -c file:/opt/aws/amazon-cloudwatch-agent/bin/config.json -s
-    #sudo systemctl restart amazon-cloudwatch-agent
+    sudo systemctl restart amazon-cloudwatch-agent
     sudo yum install -y amazon-efs-utils
-    sudo /usr/local/bin/pip3 install botocore //使用 Amazon CloudWatch 監控檔案系統的掛載狀態
-    sudo pip3 install botocore --upgrade
-    sudo mkdir -p /mnt/efs
-    sudo mount -t efs -o tls ${aws_efs_file_system.efs.id} :/ /mnt/efs //將資料掛載到/mnt/efs底下的根目錄
-    touch /mnt/efs/test.txt
-   # sudo mount -t efs -o tls ${aws_efs_file_system.efs.id} /mnt/efs //傳輸中資料的加密
+    pip3 install botocore 
+    sudo mkdir -p /usr/bin/efs //創建一個目錄//透過pwd去找到現在的路徑(?) 為啥
+    sudo mount -t efs -o tls ${aws_efs_file_system.efs.id} /usr/bin/efs //將資料掛載到efs底下
+    touch /usr/bin/efs/test.txt
 
     EOF
     
@@ -101,7 +98,7 @@ resource "aws_instance" "web" {
          Name = "${var.prefix}web"
     }
     
-    depends_on = [aws_route_table.private_rt]
+    depends_on = [aws_route_table.private_rt,aws_efs_file_system.efs]
 
 
 }

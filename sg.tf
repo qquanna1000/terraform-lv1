@@ -124,6 +124,6 @@ resource "aws_security_group" "sgefs" {
   }
 
   tags = {
-    Name = "${var.prefix}bastion"
+    Name = "${var.prefix}efs"
   }
 }

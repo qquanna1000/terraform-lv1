@@ -28,7 +28,7 @@ resource "aws_autoscaling_group" "asg" {
   health_check_grace_period = 300
   health_check_type  = "ELB"
  
-//指定範本ec2  
+
   vpc_zone_identifier  = [aws_subnet.private[0].id, aws_subnet.private[1].id]
   
   launch_template {
@@ -50,7 +50,7 @@ resource "aws_autoscaling_group" "asg" {
 
 //targetgroup
 resource "aws_lb_target_group" "tg" {
-  name     = "1000-tg"
+  name     = "${var.prefix}tg"
   port     = 80
   protocol = "HTTP"
   vpc_id   = aws_vpc.main.id
