@@ -28,11 +28,7 @@ resource "aws_instance" "web" {
     sudo yum update -y
     sudo yum install -y httpd.x86_64
     sudo yum install -y mysql
-    sudo yum install -y amazon-linux-extras
-    sudo amazon-linux-extras install -y php8.0
-    #sudo amazon-linux-extras enable php8.0 //啟動php8.0
-    #sudo yum install php-cli php-common php-mbstring php-gd php-mysqlnd php-pdo php-xml php-fpm -y
-    echo "Your IP address is: <?php echo \$_SERVER['REMOTE_ADDR']; ?>" > /var/www/html/index.php
+    echo "wadasi private IP address is: $(curl http://169.254.169.254/latest/meta-data/local-ipv4)" > /var/www/html/index.html
     sudo systemctl start httpd.service
     sudo systemctl enable httpd.service
     sudo yum install -y amazon-cloudwatch-agent
@@ -85,11 +81,10 @@ resource "aws_instance" "web" {
         }
     }' > /opt/aws/amazon-cloudwatch-agent/bin/config.json
     sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -c file:/opt/aws/amazon-cloudwatch-agent/bin/config.json -s
-    sudo systemctl restart amazon-cloudwatch-agent
     sudo yum install -y amazon-efs-utils
     pip3 install botocore 
-    sudo mkdir -p /usr/bin/efs //創建一個目錄//透過pwd去找到現在的路徑(?) 為啥
-    sudo mount -t efs -o tls ${aws_efs_file_system.efs.id} /usr/bin/efs //將資料掛載到efs底下
+    sudo mkdir -p /usr/bin/efs 
+    sudo mount -t efs -o tls ${aws_efs_file_system.efs.id}:/ /usr/bin/efs
     touch /usr/bin/efs/test.txt
 
     EOF
